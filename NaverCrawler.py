@@ -5,11 +5,11 @@ import time
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-
 class NaverCrawler:
-    def __init__(self, iProcsCnt):
+    def __init__(self, iProcsCnt,urlQueue):
         self.m_NaverDict = {}
         self.m_FoodTypeList = []
+        self.urlQueue = urlQueue
 
         self.Naver_Scrapping(iProcsCnt)
 
@@ -42,7 +42,8 @@ class NaverCrawler:
 
                 NewDict = {FoodTypeList[iCountFoodList].text : image_url}
                 RetList.append(NewDict)
-                print(image_url)
+                self.urlQueue.put(image_url)
+                # print(image_url)
                 iCountFoodList += 1
             else:
                 print("URL not found.")
@@ -63,24 +64,28 @@ class NaverCrawler:
             self.Add_Naver_List(page=self.page)
             return
 
+        time.sleep(1)
         self.page.locator("div").filter(has_text=re.compile(r"^이전현재1전체5다음$")).get_by_role("button", name="다음").click()
 
         if iProccessCnt == 1:
             self.Add_Naver_List(page=self.page)
             return
 
+        time.sleep(1)
         self.page.locator("div").filter(has_text=re.compile(r"^이전현재2전체5다음$")).get_by_role("button", name="다음").click()
 
         if iProccessCnt == 2:
             self.Add_Naver_List(page=self.page)
             return
 
+        time.sleep(1)
         self.page.locator("div").filter(has_text=re.compile(r"^이전현재3전체5다음$")).get_by_role("button", name="다음").click()
 
         if iProccessCnt == 3:
             self.Add_Naver_List(page=self.page)
             return
 
+        time.sleep(1)
         self.page.locator("div").filter(has_text=re.compile(r"^이전현재4전체5다음$")).get_by_role("button", name="다음").click()
         if iProccessCnt == 4:
             self.Add_Naver_List(page=self.page)

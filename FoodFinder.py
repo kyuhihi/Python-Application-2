@@ -1,15 +1,19 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QFont, QPainter
 from PyQt5.QtWidgets import *
+from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
+
+from SadariTagi import sadariTagi
 
 import urls
 import re
 import requests
 import os
 from multiprocessing import Process
+import random
 
-from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
+
 
 class FoodFinder(QMainWindow):
     def __init__(self, NaverDict):
@@ -30,6 +34,7 @@ class FoodFinder(QMainWindow):
 
         self.m_list_widget = QListWidget(self)
         self.m_list_widget_Text = QLineEdit(self)
+        self.m_list_widget_Text.setGeometry(0,0,200,50)
         self.layout.addWidget(self.m_list_widget_Text)
 
         self.Add_List_Items()
@@ -50,14 +55,61 @@ class FoodFinder(QMainWindow):
         self.m_PreviewImageLabel.setGeometry(700, 0, 500, 500)
         self.layout.addWidget(self.m_PreviewImageLabel)
 
-        self.m_WebPage_Button = QPushButton("Search!", self)
+        self.m_WebPage_Button = QPushButton("On Naver!", self)
         self.m_WebPage_Button.setGeometry(750, 500, 200, 50)
         self.layout.addWidget(self.m_WebPage_Button)
 
         self.m_WebPage_Button.clicked.connect(self.on_button_clicked)
+
+        self.m_Sadari_Button = QPushButton("Open Game", self)
+        self.m_Sadari_Button.setGeometry(1000, 500, 200, 50)
+        self.layout.addWidget(self.m_Sadari_Button)
+
+        self.m_Sadari_Button.clicked.connect(self.Open_SadariGame)
+
         self.m_WebPage = None
         self.m_Web_Browser = None
         self.m_p = None
+        self.m_SadariTagi = None
+
+    def GetRandomTenStore(self):
+        make_ten_Number_List = random.sample(range(0,self.m_list_widget.count()-1),10)
+        print(make_ten_Number_List)
+
+        for i, number in enumerate(make_ten_Number_List):
+            if self.m_list_widget.item(number).text()== "":
+                while  self.m_list_widget.item(number).text() != "":
+                    number = random.randint(0,self.m_list_widget.count()-1)
+            make_ten_Number_List[i] = self.m_list_widget.item(number).text()
+        print(make_ten_Number_List)
+
+        return make_ten_Number_List
+
+    def Open_SadariGame(self):
+        Ten_Numbers_List = self.GetRandomTenStore()
+        if self.m_WebPage is not None:
+            self.m_WebPage.close()
+            self.m_Web_Browser.close()
+            self.m_WebPage = None
+            self.m_Web_Browser = None
+            self.m_p.stop()
+
+        if self.m_SadariTagi is not None:
+
+            self.m_SadariTagi = None
+
+        url = urls.Sadari_Naver_url
+        self.m_p = sync_playwright().start()
+        self.m_Web_Browser = self.m_p.chromium.launch(headless=False).new_context(
+            viewport={"width": 800, "height": 600}
+        )
+        self.m_WebPage = self.m_Web_Browser.new_page()
+        self.m_WebPage.goto(url)
+        self.m_SadariTagi = sadariTagi(self.m_WebPage, Ten_Numbers_List)
+
+
+
+
 
     def on_button_clicked(self):
         if self.m_WebPage is not None:
@@ -111,10 +163,13 @@ class FoodFinder(QMainWindow):
 
             if selected_item.text() in self.m_GoogleDict:
                 print(self.m_GoogleDict[selected_item.text()])
+                self.m_list_widget_Text.setText(self.m_GoogleDict[selected_item.text()])
+
                 self.m_PreviewImageLabel.clear()
             elif selected_item.text() in self.m_NaverDict:
                 print(self.m_NaverDict[selected_item.text()])
                 self.ShowNaverImage(self.m_NaverDict[selected_item.text()])
+                self.m_list_widget_Text.setText(list(self.m_NaverDict[selected_item.text()].keys())[0])
 
     def on_filter_changed(self):
         selected_items = self.m_FoodFilter_List.selectedItems()
@@ -211,6 +266,6 @@ class FoodFinder(QMainWindow):
         r.close()
 
     def Tick(self):
-        i = 0
+        i =0
 
 

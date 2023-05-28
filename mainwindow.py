@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QLabel, QDesktopWidget, QMainWindow, \
 from FoodFinder import FoodFinder
 
 class MainWindow(QMainWindow):
-    def __init__(self, NaverDict):
+    def __init__(self):
         super().__init__()
 
         self.m_timer = QTimer(self)
@@ -32,8 +32,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.ImageViewerOpen)
 
         self.m_FoodFinder = None
-        self.m_NaverDict = NaverDict
+        self.m_NaverDict = None
 
+    def Set_NaverDict(self,NaverDict):
+        self.m_NaverDict = NaverDict
 
     def open_Food_Finder(self):
         if not self.m_FoodFinder:
@@ -41,7 +43,7 @@ class MainWindow(QMainWindow):
         else:
             self.m_FoodFinder.close()
             self.m_FoodFinder = None
-            self.m_FoodFinder = FoodFinder()
+            self.m_FoodFinder = FoodFinder(self.m_NaverDict)
 
         self.m_FoodFinder.show()
 
